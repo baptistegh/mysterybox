@@ -1,0 +1,52 @@
+package layouts
+
+var defaultTitle = "The mystery Box"
+
+templ Base(title, description string, weekNumber int8, nextUpdate, rTitle, rText string) {
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{ getTitle(title) }</title> 
+    @descriptionMeta(description)
+    <script src="/assets/js/htmx.min.js" hx-preserve="true"></script> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1 class="site-title">La Boîte Mystérieuse</h1>
+        <p class="subtitle">Chaque semaine tu pourras trouver le prochain chiffre.</p>
+      </header>
+     <div
+				id="content"
+				hx-on:htmx:before-swap="handleServerError(event)"
+				hx-on:htmx:send-error="errorToast('A network error occurred')"
+			>
+				<section id="riddle-card" class="card">
+    		    <div class="meta">Semaine <span id="week-number">{ weekNumber }</span> · Prochaine mise à jour : <span id="next-change">{ nextUpdate }</span></div>
+     			   <h2 id="riddle-title" class="riddle-title">{ rTitle }</h2>
+        			<div id="riddle-text" class="riddle-text">{ rText }</div>
+ 				</section>
+	 </div> 
+    </main> 
+  </body>
+</html>
+}
+
+templ descriptionMeta(description string) {
+	if description != "" {
+		<meta name="description" content={ description }/>
+	}
+}
+
+func getTitle(title string) string {
+	if title == "" {
+		return defaultTitle
+	}
+	return title
+}

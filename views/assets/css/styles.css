@@ -1,0 +1,38 @@
+:root{
+  --bg1:#0b0b0f;
+  --bg2:#13131a;
+  --accent:#8b5cf6;
+  --muted:#9aa1ad;
+  --card:#0f1114;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Roboto,system-ui,-apple-system,Segoe UI,Arial;
+  background:radial-gradient(1200px 400px at 10% 10%, rgba(139,92,246,0.08), transparent), linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:#e6edf3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:2rem;
+}
+.container{max-width:880px;width:100%}
+.header{margin-bottom:1.25rem;text-align:center}
+.site-title{font-family:Cinzel, serif;margin:0;font-size:2.1rem;letter-spacing:1px;color:var(--accent)}
+.subtitle{margin:0;color:var(--muted)}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.04);
+  padding:1.6rem;
+  border-radius:12px;
+  box-shadow:0 8px 30px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.meta{font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem}
+.riddle-title{margin:0 0 0.6rem 0;font-size:1.4rem}
+.riddle-text{font-size:1.05rem;line-height:1.6;color:#dbe9ff}
+.hidden{display:none}
+@media (max-width:600px){
+  .site-title{font-size:1.6rem}
+  .riddle-title{font-size:1.15rem}
+}
