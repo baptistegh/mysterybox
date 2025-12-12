@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -46,20 +47,21 @@ func Riddles() (*Conf, error) {
 	return &riddles, nil
 }
 
-func NextMonday(t time.Time) time.Time {
-	// Calculate days until next Monday
-	daysUntilMonday := (int(time.Monday) - int(t.Weekday()) + 7) % 7
-	if daysUntilMonday == 0 {
-		daysUntilMonday = 7 // If today is Monday, get next Monday
+func NextUpdate(now time.Time, start time.Time) time.Time {
+	next := start
+	for {
+		if next.After(now) {
+			return next
+		}
+		next = next.AddDate(0, 0, 7)
 	}
-
-	nextMonday := t.AddDate(0, 0, daysUntilMonday)
-
-	// Return next Monday at 00:00:00 in the same location
-	return time.Date(nextMonday.Year(), nextMonday.Month(), nextMonday.Day(), 0, 0, 0, 0, t.Location())
 }
 
 func WeeksPassed(now time.Time, from time.Time) int8 {
+	if now.Before(from) {
+		log.Default().Println("The game has not started yet!")
+		return -1
+	}
 	duration := now.Sub(from)
 	return int8(duration.Hours() / 24 / 7)
 }
@@ -77,24 +79,28 @@ func NewServer(addr string) (*Server, error) {
 		now := time.Now()
 
 		var (
-			weekNumber int8   = 0
-			nextUpdate string = NextMonday(now).Format(time.ANSIC)
-			rTitle            = "Encore un peu de patience"
-			rText             = "Le jeux commencera prochainement.."
+			nextUpdate time.Time = NextUpdate(now, conf.StartDate)
+			weekNumber int8      = WeeksPassed(now, conf.StartDate)
+			rTitle               = "Encore un peu de patience"
+			rText                = "Le jeux commencera prochainement.."
 		)
 
+		log.Default().Printf("now=%s, startDate=%s, nextUpdate=%s, weekNumber=%d", now, conf.StartDate.String(), nextUpdate.String(), weekNumber)
+
 		if now.After(conf.StartDate) {
-			index := WeeksPassed(now, conf.StartDate)
-			weekNumber = index + 1
-			if index >= int8(len(conf.Riddles)) {
-				index = int8(len(conf.Riddles) - 1)
+			if weekNumber >= int8(len(conf.Riddles)) {
+				weekNumber = int8(len(conf.Riddles) - 1)
 			}
-			currentRiddle := conf.Riddles[index]
+			currentRiddle := conf.Riddles[weekNumber]
 			rTitle = currentRiddle.Title
 			rText = currentRiddle.Text
 		}
 
-		layouts.Base("Mystery Box", "homepage", weekNumber, nextUpdate, rTitle, rText).Render(r.Context(), w)
+		if weekNumber <= 0 {
+			weekNumber = -1
+		}
+
+		layouts.Base("Mystery Box", "homepage", weekNumber+1, nextUpdate.Format(time.ANSIC), rTitle, rText).Render(r.Context(), w)
 	})
 
 	compressor := chimiddleware.NewCompressor(gzip.DefaultCompression)
