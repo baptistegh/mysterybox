@@ -36,3 +36,44 @@ body{
   .site-title{font-size:1.6rem}
   .riddle-title{font-size:1.15rem}
 }
+
+/* Button styles to match site design */
+.btn{
+  -webkit-appearance:none;
+  appearance:none;
+  border: 0;
+  background: linear-gradient(90deg, var(--accent), rgba(139,92,246,0.85));
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 8px 24px rgba(2,6,23,0.6), 0 2px 6px rgba(139,92,246,0.12);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  display:block;
+  margin:1.25rem auto 0;
+  text-align:center;
+}
+
+.btn:hover{ transform: translateY(-3px); box-shadow:0 12px 30px rgba(2,6,23,0.6), 0 6px 18px rgba(139,92,246,0.14); filter:brightness(1.02); }
+
+.btn:active{ transform: translateY(0); box-shadow:0 6px 16px rgba(2,6,23,0.6); }
+
+.btn:focus{ outline: 3px solid rgba(139,92,246,0.16); outline-offset:3px; }
+
+@media (max-width:600px){
+  .btn{ width:100%; padding:0.85rem 1rem; border-radius:8px }
+}
+
+/* Answer form */
+.answer-form{ margin-top:1rem; display:flex; flex-direction:column; gap:0.6rem }
+.answer-input{ background:transparent; border:1px solid rgba(255,255,255,0.06); padding:0.7rem; border-radius:8px; color:inherit; font-size:1rem }
+.form-actions{ display:flex; justify-content:flex-end }
+
+.msg{ font-size:0.95rem; padding:0.6rem; border-radius:8px }
+.msg.error{ background: rgba(255,55,55,0.04); color:#ffbaba; border:1px solid rgba(255,55,55,0.06) }
+.msg.success{ background: rgba(0,255,120,0.04); color:#b6ffd0; border:1px solid rgba(0,255,120,0.06) }
+
+@media (max-width:600px){
+  .answer-input{ width:100% }
+}

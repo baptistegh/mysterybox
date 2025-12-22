@@ -2,16 +2,19 @@
   "start_date": "2025-12-15T00:00:00+01:00",
   "riddles": [
     {
-      "title": "Une histoire d'heure",
-      "text": "Je vais au bar à 15:00, je rentre à la maison à 18:00 mais je suis passé au tabac à 17h00. A quelle heure ira-t-on à la piscine ?"
+      "title": "RIDDLE_TITLE_1",
+      "text": "RIDDLE_TEXT_1",
+      "answer": "RIDDLE_ANSWER_1"
     },
     {
-      "title": "0101",
-      "text": "Le premier chiffre est dans le titre. Il est Blanc ou Noir, Vrai ou Faux, Droite ou Gauche."
+      "title": "RIDDLE_TITLE_2",
+      "text": "RIDDLE_TEXT_2",
+      "answer": "RIDDLE_ANSWER_2"
     },
     {
-      "title": "Un peu de poésie",
-      "text": "Les sanglots longs des violons de l'automne blessent mon coeur d'une langueur monotone."
+      "title": "RIDDLE_TITLE_3",
+      "text": "RIDDLE_TEXT_3",
+      "answer": "RIDDLE_ANSWER_3"
     }
   ]
 }

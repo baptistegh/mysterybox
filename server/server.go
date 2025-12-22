@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/baptistegh/mysterybox/server/middleware"
@@ -29,8 +31,9 @@ type Conf struct {
 }
 
 type Riddle struct {
-	Title string `json:"title"`
-	Text  string `json:"text"`
+	Title  string `json:"title"`
+	Text   string `json:"text"`
+	Answer string `json:"answer"`
 }
 
 func Riddles() (*Conf, error) {
@@ -76,31 +79,83 @@ func NewServer(addr string) (*Server, error) {
 	mux.Handle("GET /assets/", middleware.AssetsCache(http.FileServer(views.Assets)))
 	mux.Handle("GET /", Root())
 	mux.HandleFunc("GET /home", func(w http.ResponseWriter, r *http.Request) {
-		now := time.Now()
-
 		var (
-			nextUpdate time.Time = NextUpdate(now, conf.StartDate)
-			weekNumber int8      = WeeksPassed(now, conf.StartDate)
-			rTitle               = "Encore un peu de patience"
-			rText                = "Le jeux commencera prochainement.."
+			rTitle = "Jouons à un petit jeu!"
+			rText  = "Trouve toutes les énigmes pour ouvrire cette boîte mystérieuse."
 		)
 
-		log.Default().Printf("now=%s, startDate=%s, nextUpdate=%s, weekNumber=%d", now, conf.StartDate.String(), nextUpdate.String(), weekNumber)
+		// If the request comes from HTMX, return only the fragment so we don't swap a full page
+		if r.Header.Get("HX-Request") == "true" {
+			layouts.Home(rTitle, rText).Render(r.Context(), w)
+			return
+		}
 
-		if now.After(conf.StartDate) {
-			if weekNumber >= int8(len(conf.Riddles)) {
-				weekNumber = int8(len(conf.Riddles) - 1)
+		layouts.Base("Mystery Box", "homepage", rTitle, rText).Render(r.Context(), w)
+	})
+
+	mux.HandleFunc("GET /riddles/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+
+		i, err := strconv.ParseInt(id, 10, 8)
+		if err != nil {
+			log.Default().Printf("Error: wrong id given %s, %s", id, err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if i < 0 || int(i) >= len(conf.Riddles) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		var (
+			rTitle = conf.Riddles[i].Title
+			rText  = conf.Riddles[i].Text
+		)
+
+		layouts.Riddle(id, rTitle, rText, "").Render(r.Context(), w)
+	})
+
+	mux.HandleFunc("POST /riddles/{id}/answer", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+
+		i, err := strconv.ParseInt(id, 10, 8)
+		if err != nil {
+			log.Default().Printf("Error: wrong id given %s, %s", id, err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if i < 0 || int(i) >= len(conf.Riddles) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		answer := strings.TrimSpace(strings.ToLower(r.FormValue("answer")))
+		expected := strings.TrimSpace(strings.ToLower(conf.Riddles[i].Answer))
+
+		if expected == "" {
+			layouts.Riddle(id, conf.Riddles[i].Title, conf.Riddles[i].Text, "Aucune réponse configurée pour cette énigme.").Render(r.Context(), w)
+			return
+		}
+
+		if answer == expected {
+			nextIndex := int(i) + 1
+			if nextIndex >= len(conf.Riddles) {
+				layouts.End().Render(r.Context(), w)
+				return
 			}
-			currentRiddle := conf.Riddles[weekNumber]
-			rTitle = currentRiddle.Title
-			rText = currentRiddle.Text
+			layouts.Riddle(strconv.FormatInt(int64(nextIndex), 10), conf.Riddles[nextIndex].Title, conf.Riddles[nextIndex].Text, "").Render(r.Context(), w)
+			return
 		}
 
-		if weekNumber <= 0 {
-			weekNumber = -1
-		}
-
-		layouts.Base("Mystery Box", "homepage", weekNumber+1, nextUpdate.Format(time.ANSIC), rTitle, rText).Render(r.Context(), w)
+		// wrong answer
+		layouts.Riddle(id, conf.Riddles[i].Title, conf.Riddles[i].Text, "Mauvaise réponse, essaie encore.").Render(r.Context(), w)
 	})
 
 	compressor := chimiddleware.NewCompressor(gzip.DefaultCompression)

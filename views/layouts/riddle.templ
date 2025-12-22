@@ -1,0 +1,39 @@
+package layouts
+
+// Home template — used on the homepage, no answer form
+templ Home(rTitle, rText string) {
+	<section class="card">
+	  <h2 class="riddle-title">{ rTitle }</h2>
+	  <div class="riddle-text">{ rText }</div>
+	  <div style="margin-top:1.2rem">
+	    <button class="btn" hx-get="/riddles/0" hx-target="#content">Découvrir</button>
+	  </div>
+	</section>
+}
+
+templ Riddle(id, rTitle, rText, msg string) {
+	<section id="riddle-card" class="card">
+        <h2 id="riddle-title" class="riddle-title">{ rTitle }</h2>
+	    <div id="riddle-text" class="riddle-text">{ rText }</div>
+
+	    <form class="answer-form" hx-post={"/riddles/" + id + "/answer"} hx-target="#content" hx-swap="innerHTML">
+	      <input type="text" name="answer" class="answer-input" placeholder="Votre réponse" autocomplete="off" required />
+	      <div class="form-actions">
+	        <button class="btn" type="submit">Valider</button>
+	      </div>
+	      if msg != "" {
+	        <div class="msg error">{ msg }</div>
+	      }
+	    </form>
+ 	</section>
+}
+
+templ End() {
+	<section class="card">
+	  <h2 class="riddle-title">Bravo !</h2>
+	  <div class="riddle-text">Tu as résolu toutes les énigmes. La partie est terminée.</div>
+	  <div style="margin-top:1.2rem">
+	    <button class="btn" hx-get="/home" hx-target="#content">Rejouer</button>
+	  </div>
+	</section>
+}

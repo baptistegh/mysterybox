@@ -2,7 +2,7 @@ package layouts
 
 var defaultTitle = "The mystery Box"
 
-templ Base(title, description string, weekNumber int8, nextUpdate, rTitle, rText string) {
+templ Base(title, description string, rTitle, rText string) {
 <!doctype html>
 <html lang="fr">
   <head>
@@ -10,7 +10,38 @@ templ Base(title, description string, weekNumber int8, nextUpdate, rTitle, rText
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{ getTitle(title) }</title> 
     @descriptionMeta(description)
-    <script src="/assets/js/htmx.min.js" hx-preserve="true"></script> 
+    <script src="/assets/js/htmx.min.js" hx-preserve="true"></script>
+    <script>
+      // Small helpers to avoid ReferenceError in console and show basic toasts
+      function errorToast(msg) {
+        try {
+          const t = document.createElement('div');
+          t.textContent = msg;
+          t.style.position = 'fixed';
+          t.style.right = '1rem';
+          t.style.top = '1rem';
+          t.style.padding = '0.6rem 0.9rem';
+          t.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.45))';
+          t.style.color = '#fff';
+          t.style.borderRadius = '8px';
+          t.style.boxShadow = '0 6px 20px rgba(2,6,23,0.6)';
+          t.style.zIndex = 9999;
+          document.body.appendChild(t);
+          setTimeout(() => t.remove(), 4000);
+        } catch (e) { console.warn('errorToast failed', e) }
+      }
+
+      function handleServerError(evt) {
+        try {
+          const xhr = evt && evt.detail && evt.detail.xhr;
+          if (xhr && xhr.status >= 500) {
+            errorToast('Une erreur serveur est survenue');
+            // prevent swapping server error HTML into the app area
+            if (evt.detail) evt.detail.shouldSwap = false;
+          }
+        } catch (e) { console.warn('handleServerError failed', e) }
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
@@ -22,18 +53,14 @@ templ Base(title, description string, weekNumber int8, nextUpdate, rTitle, rText
         <h1 class="site-title">La Boîte Mystérieuse</h1>
         <p class="subtitle">Chaque semaine tu pourras trouver le prochain chiffre.</p>
       </header>
-     <div
+      <div
 				id="content"
 				hx-on:htmx:before-swap="handleServerError(event)"
 				hx-on:htmx:send-error="errorToast('A network error occurred')"
 			>
-				<section id="riddle-card" class="card">
-    		    <div class="meta">Semaine <span id="week-number">{ weekNumber }</span> · Prochaine mise à jour : <span id="next-change">{ nextUpdate }</span></div>
-     			   <h2 id="riddle-title" class="riddle-title">{ rTitle }</h2>
-        			<div id="riddle-text" class="riddle-text">{ rText }</div>
- 				</section>
-	 </div> 
-    </main> 
+        @Home(rTitle, rText)
+   	  </div> 
+     </main> 
   </body>
 </html>
 }
